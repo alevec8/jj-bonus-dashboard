@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>J&J — 2026 Bonus Performance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --dark:#1C2E23;--pink:#E03189;--lime:#84BD00;--midgreen:#7BB223;
+  --offwhite:#F4F6F4;--muted:#8AA898;--border:#E2EAE4;--text:#1C2E23;
+  --amber:#F5A623;--red:#E83B3B;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--offwhite);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--dark);padding:24px 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--lime);}
+.pill{display:inline-block;background:var(--pink);color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;padding:3px 12px;border-radius:20px;margin-bottom:6px;}
+.header h1{font-family:'DM Serif Display',serif;font-size:26px;color:#fff;font-weight:400;}
+.header-sub{color:var(--lime);font-size:11px;letter-spacing:1px;margin-top:2px;}
+.year-badge{background:rgba(132,189,0,.15);border:1px solid var(--lime);color:var(--lime);font-size:13px;font-weight:700;padding:8px 20px;border-radius:8px;}
+.main{padding:32px 48px;max-width:1400px;margin:0 auto;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:28px;border-bottom:2px solid var(--border);align-items:flex-end;flex-wrap:wrap;}
+.tab{padding:11px 22px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;font-family:'DM Sans',sans-serif;position:relative;}
+.tab:hover{color:var(--dark);}
+.tab.active{color:var(--dark);border-bottom-color:var(--pink);}
+.tab-role{font-size:10px;font-weight:400;color:var(--muted);display:block;margin-top:1px;}
+.tab.active .tab-role{color:var(--pink);}
+/* edit name pencil on tab */
+.tab-edit-btn{position:absolute;top:6px;right:4px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:10px;opacity:0;transition:opacity .15s;padding:2px;}
+.tab:hover .tab-edit-btn{opacity:1;}
+/* add person button in tabs row */
+.tab-add-btn{padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px dashed var(--lime);background:transparent;color:var(--lime);border-radius:8px;font-family:'DM Sans',sans-serif;margin-left:8px;margin-bottom:2px;transition:all .2s;white-space:nowrap;}
+.tab-add-btn:hover{background:rgba(132,189,0,.1);}
+
+.panel{display:none;}
+.panel.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* TOP ROW */
+.top-row{display:grid;grid-template-columns:280px 1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.dark-card{background:var(--dark);border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;}
+.dark-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--lime);}
+.dark-card.accent::before{background:var(--pink);}
+.card-label{font-size:10px;letter-spacing:2px;color:var(--muted);font-weight:600;margin-bottom:10px;}
+.card-value{font-family:'DM Serif Display',serif;font-size:28px;color:var(--lime);}
+.card-value.pink{color:var(--pink);}
+.card-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.salary-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 12px;margin-bottom:8px;}
+.salary-wrap span{color:var(--lime);font-size:16px;font-weight:700;flex-shrink:0;}
+.salary-wrap input{background:transparent;border:none;outline:none;color:#fff;font-family:'DM Serif Display',serif;font-size:22px;width:100%;min-width:0;}
+.salary-wrap input::placeholder{color:rgba(255,255,255,.25);}
+
+/* PERSON HEADER ROW (name + edit controls) */
+.person-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:14px 18px;background:#fff;border-radius:12px;border:1px solid var(--border);}
+.person-header-left{}
+.person-name-display{font-family:'DM Serif Display',serif;font-size:22px;color:var(--dark);}
+.person-role-display{font-size:12px;color:var(--muted);margin-top:2px;}
+.person-header-actions{display:flex;gap:8px;}
+.person-action-btn{padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;border-radius:7px;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-edit-person{background:rgba(28,46,35,.07);border:1px solid var(--border);color:var(--dark);}
+.btn-edit-person:hover{background:rgba(28,46,35,.14);}
+.btn-delete-person{background:rgba(232,59,59,.08);border:1px solid rgba(232,59,59,.3);color:var(--red);}
+.btn-delete-person:hover{background:rgba(232,59,59,.15);}
+
+/* SECTION */
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);}
+.edit-btn{background:rgba(224,49,137,.12);border:1px solid rgba(224,49,137,.4);color:var(--pink);font-size:11px;font-weight:600;padding:5px 14px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.edit-btn:hover{background:rgba(224,49,137,.22);}
+.edit-btn.on{background:var(--pink);color:#fff;}
+
+/* METRIC CARD */
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px;}
+.metric-card{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 10px rgba(28,46,35,.05);}
+.metric-header{background:var(--dark);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.metric-title{color:#fff;font-weight:600;font-size:13px;}
+.metric-weight-badge{background:rgba(132,189,0,.2);color:var(--lime);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.metric-body{padding:18px;}
+.view-mode{}
+.edit-mode{display:none;}
+.editing .view-mode{display:none;}
+.editing .edit-mode{display:block;}
+.desc-row{margin-bottom:14px;}
+.desc-row span{font-size:11.5px;color:var(--muted);}
+
+/* SLIDER */
+.slider-zone{position:relative;margin-bottom:18px;padding-bottom:32px;}
+.zone-track{position:relative;height:12px;border-radius:10px;overflow:hidden;cursor:pointer;}
+.zone-seg{position:absolute;top:0;height:100%;}
+.slider-thumb-wrap{position:absolute;top:-5px;transform:translateX(-50%);cursor:grab;z-index:10;user-select:none;}
+.slider-thumb-wrap:active{cursor:grabbing;}
+.slider-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--dark);box-shadow:0 2px 8px rgba(0,0,0,.18);transition:border-color .2s,transform .1s;display:flex;align-items:center;justify-content:center;}
+.slider-thumb-wrap:hover .slider-thumb,.slider-thumb-wrap:active .slider-thumb{transform:scale(1.15);}
+.thumb-inner{width:8px;height:8px;border-radius:50%;background:var(--dark);}
+.slider-tooltip{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;font-family:'DM Serif Display',serif;font-size:13px;padding:3px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;}
+.slider-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--dark);}
+.zone-labels{position:absolute;bottom:0;left:0;right:0;}
+.zone-label{position:absolute;transform:translateX(-50%);font-size:9px;color:var(--muted);white-space:nowrap;}
+.zone-label::before{content:'';display:block;width:1px;height:5px;background:var(--border);margin:0 auto 1px;}
+.payout-badge{display:flex;align-items:center;justify-content:space-between;border-radius:9px;padding:11px 15px;margin-top:4px;transition:background .3s;}
+.payout-badge .pb-label{font-size:10px;color:rgba(255,255,255,.6);font-weight:600;letter-spacing:.5px;}
+.payout-badge .pb-desc{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px;}
+.payout-badge .pb-right{text-align:right;}
+.payout-badge .pb-pct{font-family:'DM Serif Display',serif;font-size:22px;color:#fff;line-height:1;}
+.payout-badge .pb-contrib{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px;}
+
+/* EDIT FIELDS */
+.ef{margin-bottom:10px;}
+.ef label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:5px;}
+.ef input{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);}
+.ef input:focus{outline:none;border-color:var(--lime);}
+.weight-hint{font-size:10px;color:var(--muted);margin-top:4px;}
+.bkt-edit-row{display:grid;grid-template-columns:1fr 56px;gap:6px;margin-bottom:5px;align-items:center;}
+.bkt-edit-row input{padding:6px 9px;font-size:11px;}
+
+/* OVERALL */
+.overall-box{background:var(--dark);border-radius:14px;padding:22px 28px;display:flex;align-items:center;gap:32px;border:1px solid rgba(132,189,0,.25);margin-bottom:16px;}
+.ob-info{min-width:160px;}
+.ob-meta{font-size:10px;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:4px;}
+.ob-name{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;}
+.ob-role{color:var(--lime);font-size:11px;margin-top:2px;}
+.ob-bar-wrap{flex:1;}
+.ob-bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px;}
+.ob-track{height:13px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;}
+.ob-fill{height:100%;border-radius:10px;transition:width .5s cubic-bezier(.16,1,.3,1);}
+.ob-right{text-align:right;min-width:100px;}
+.ob-pct-label{font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:3px;}
+.ob-pct-val{font-family:'DM Serif Display',serif;font-size:44px;color:var(--lime);line-height:1;}
+.ob-pct-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* PAYOUT */
+.payout-panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 10px rgba(28,46,35,.05);}
+.payout-title{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:14px;}
+.payout-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.payout-item{background:var(--offwhite);border-radius:10px;padding:14px 16px;}
+.pi-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:1px;margin-bottom:6px;}
+.pi-val{font-family:'DM Serif Display',serif;font-size:22px;color:var(--dark);}
+.pi-val.g{color:var(--lime);}
+.pi-val.pk{color:var(--pink);}
+.pi-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.notes-box{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--muted);line-height:1.7;}
+.notes-box strong{color:var(--text);}
+.warn{background:rgba(245,166,35,.1);border:1px solid var(--amber);border-radius:7px;padding:7px 12px;font-size:11px;color:#8a5a00;margin-bottom:12px;display:none;}
+.warn.show{display:block;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:16px;padding:32px;width:460px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(12px);transition:transform .2s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--dark);margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
+.modal-field{margin-bottom:16px;}
+.modal-field label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px;}
+.modal-field input,.modal-field select{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:#fff;}
+.modal-field input:focus,.modal-field select:focus{outline:none;border-color:var(--lime);}
+.modal-field select{cursor:pointer;}
+.modal-actions{display:flex;gap:10px;margin-top:24px;}
+.modal-btn{flex:1;padding:11px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.modal-btn-primary{background:var(--dark);color:#fff;border:none;}
+.modal-btn-primary:hover{background:#2a4233;}
+.modal-btn-secondary{background:transparent;color:var(--muted);border:1.5px solid var(--border);}
+.modal-btn-secondary:hover{border-color:var(--dark);color:var(--dark);}
+.modal-btn-danger{background:transparent;color:var(--red);border:1.5px solid rgba(232,59,59,.4);}
+.modal-btn-danger:hover{background:rgba(232,59,59,.08);}
+.modal-section-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.copy-from-label{font-size:11px;color:var(--muted);margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="pill">J&J GLOBAL FULFILMENT</div>
+    <h1>2026 Bonus Performance Dashboard</h1>
+    <div class="header-sub">ACCOUNT MANAGEMENT &amp; CLIENT SERVICES · LEADERSHIP TEAM</div>
+  </div>
+  <div class="year-badge">FY 2026</div>
+</div>
+
+<div class="main">
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+</div>
+
+<!-- PERSON MODAL -->
+<div class="modal-overlay" id="person-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add Person</div>
+    <div class="modal-sub" id="modal-sub">Add a new team member to the dashboard</div>
+    <div class="modal-field">
+      <label>FULL NAME</label>
+      <input type="text" id="modal-name" placeholder="e.g. Sarah"/>
+    </div>
+    <div class="modal-field">
+      <label>JOB TITLE</label>
+      <input type="text" id="modal-role" placeholder="e.g. Account Manager"/>
+    </div>
+    <div class="modal-field">
+      <label>BONUS TARGET (%)</label>
+      <input type="number" id="modal-bonus" value="10" min="1" max="100"/>
+    </div>
+    <hr class="modal-section-divider" id="modal-copy-divider"/>
+    <div id="modal-copy-section">
+      <div class="copy-from-label">Copy metrics from an existing person (optional)</div>
+      <div class="modal-field">
+        <label>COPY METRICS FROM</label>
+        <select id="modal-copy-from">
+          <option value="">— Start with default metrics —</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions" id="modal-actions">
+      <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn modal-btn-primary" id="modal-confirm-btn" onclick="modalConfirm()">Add Person</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────────
+const DEFAULT_METRICS = [
+  { title:'🛡 Retention & Churn',   weight:40, desc:'Clients retained vs total managed portfolio',      label:'SCORE (0–100)', unit:'pts',
+    brackets:[{r:'Below 80%',p:0},{r:'80–89%',p:50},{r:'90–99%',p:75},{r:'100%',p:100}] },
+  { title:'📈 Portfolio Margin',     weight:35, desc:'Margin maintained/grown vs target',               label:'SCORE (0–100)', unit:'pts',
+    brackets:[{r:'Drops >2% vs target',p:0},{r:'Within 2% of target',p:50},{r:'At or above target',p:75},{r:'At target + 0 discounts',p:100}] },
+  { title:'🚀 Upsell & Cross-sell', weight:25, desc:'Attainment vs personal upsell revenue target',    label:'SCORE (0–100)', unit:'pts',
+    brackets:[{r:'Below 80% of target',p:0},{r:'80–89% of target',p:50},{r:'90–99% of target',p:75},{r:'100%+ of target',p:100}] },
+];
+
+function deepCloneMetrics(metrics) {
+  return metrics.map(m => ({...m, brackets: m.brackets.map(b=>({...b}))}));
+}
+
+let PEOPLE = [
+  { id:'leo',    name:'Leo',    role:'Strategic Account Director',  bonusPct:10,
+    notes:'<strong>Gate clause:</strong> 3+ client losses → Retention pays 0% regardless. &nbsp;·&nbsp; <strong>Cap:</strong> Bonus capped at 100%.',
+    metrics: deepCloneMetrics([
+      { title:'🛡 Retention & Churn',   weight:40, desc:'Clients retained vs total managed portfolio',      label:'RETENTION %',   unit:'%',
+        brackets:[{r:'Below 80% retained',p:0},{r:'80–89% retained',p:50},{r:'90–99% retained',p:75},{r:'100% retained',p:100}] },
+      { title:'📈 Portfolio Margin',     weight:35, desc:'Margin maintained/grown + 0 unapproved discounts', label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'Margin drops >2% vs target',p:0},{r:'Within 2% of target',p:50},{r:'At or above target',p:75},{r:'At target + 0 discounts',p:100}] },
+      { title:'🚀 Upsell & Cross-sell', weight:25, desc:'Attainment vs personal upsell revenue target',     label:'ATTAINMENT %',  unit:'%',
+        brackets:[{r:'Below 80% of target',p:0},{r:'80–89% of target',p:50},{r:'90–99% of target',p:75},{r:'100%+ of target',p:100}] },
+    ])
+  },
+  { id:'matt',   name:'Matt',   role:'Head of Client Service',       bonusPct:10,
+    notes:'<strong>Gate clause:</strong> 3+ client losses → Retention pays 0% regardless. &nbsp;·&nbsp; <strong>Cap:</strong> Bonus capped at 100%.',
+    metrics: deepCloneMetrics([
+      { title:'🛡 Retention & Churn',   weight:40, desc:'Clients retained vs total managed portfolio',      label:'RETENTION %',   unit:'%',
+        brackets:[{r:'Below 80% retained',p:0},{r:'80–89% retained',p:50},{r:'90–99% retained',p:75},{r:'100% retained',p:100}] },
+      { title:'📈 Portfolio Margin',     weight:35, desc:'Margin maintained/grown + 0 unapproved discounts', label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'Margin drops >2% vs target',p:0},{r:'Within 2% of target',p:50},{r:'At or above target',p:75},{r:'At target + 0 discounts',p:100}] },
+      { title:'🚀 Upsell & Cross-sell', weight:25, desc:'Attainment vs personal upsell revenue target',     label:'ATTAINMENT %',  unit:'%',
+        brackets:[{r:'Below 80% of target',p:0},{r:'80–89% of target',p:50},{r:'90–99% of target',p:75},{r:'100%+ of target',p:100}] },
+    ])
+  },
+  { id:'gina',   name:'Gina',   role:'Client Operations Manager',    bonusPct:10,
+    notes:'<strong>Escalation baseline:</strong> Set from 2025 full-year data before Q1 review. &nbsp;·&nbsp; <strong>Cap:</strong> Bonus capped at 100%.',
+    metrics: deepCloneMetrics([
+      { title:'🎓 Team Upskilling',        weight:40, desc:'Training plan delivery + measurable capability gain', label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'Plan <80% delivered, no uplift',p:0},{r:'80–89% plan + some uplift',p:50},{r:'90–99% plan + clear improvement',p:75},{r:'Full plan + measurable quality gain',p:100}] },
+      { title:'⬇ Escalation Reduction',   weight:35, desc:'Reduction in escalation rate vs prior year baseline', label:'% REDUCTION',   unit:'%',
+        brackets:[{r:'Escalation rate flat or worsened',p:0},{r:'Reduced 10–19% vs baseline',p:50},{r:'Reduced 20–29% vs baseline',p:75},{r:'Reduced 30%+ vs baseline',p:100}] },
+      { title:'⚙ Operational Efficiency', weight:25, desc:'Cross-functional process improvements + error rate',   label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'No improvements delivered',p:0},{r:'1–2 improvements, error rate stable',p:50},{r:'3+ improvements, error rate reduced',p:75},{r:'Measurable cross-team efficiency gain',p:100}] },
+    ])
+  },
+  { id:'sophia', name:'Sophia', role:'Customer Service Manager',     bonusPct:10,
+    notes:'<strong>Seymour baseline:</strong> Coverage target TBD once live. &nbsp;·&nbsp; <strong>CSAT baseline:</strong> Set from 2025 full-year average. &nbsp;·&nbsp; <strong>Cap:</strong> Bonus capped at 100%.',
+    metrics: deepCloneMetrics([
+      { title:'⚡ Ticket Resolution & Speed', weight:40, desc:'First-contact resolution rate + avg response vs target',     label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'FCR <70% or response above target',p:0},{r:'FCR 70–79% / response within 20%',p:50},{r:'FCR 80–89% / response at target',p:75},{r:'FCR 90%+ / response at or below target',p:100}] },
+      { title:'⬇ Escalations & CSAT',        weight:35, desc:'Escalation reduction vs baseline + CSAT improvement',        label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'Escalations flat/up + CSAT below baseline',p:0},{r:'Escalations down 10–19% / CSAT at baseline',p:50},{r:'Escalations down 20–29% / CSAT +5pts',p:75},{r:'Escalations down 30%+ / CSAT +10pts',p:100}] },
+      { title:'🤖 Seymour AI Adoption',       weight:25, desc:'Ticket automation coverage + quality of AI-handled tickets', label:'SCORE (0–100)', unit:'pts',
+        brackets:[{r:'Not deployed / <20% coverage',p:0},{r:'20–39% coverage, quality maintained',p:50},{r:'40–59% coverage, CSAT not impacted',p:75},{r:'60%+ coverage, quality ≥ human',p:100}] },
+    ])
+  }
+];
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+const S = {};
+function initState(pid, numMetrics) {
+  S[pid] = { salary:'', scores: Array(numMetrics).fill(0), editing:false };
+}
+PEOPLE.forEach(p => initState(p.id, p.metrics.length));
+let activePid = 'leo';
+
+const ZONE_COLORS = ['#E83B3B','#F5A623','#7BB223','#84BD00'];
+
+// ── MODAL STATE ─────────────────────────────────────────────────────────────
+let modalMode = 'add'; // 'add' | 'edit'
+let modalEditPid = null;
+
+function openAddModal() {
+  modalMode = 'add';
+  modalEditPid = null;
+  document.getElementById('modal-title').textContent = 'Add Person';
+  document.getElementById('modal-sub').textContent = 'Add a new team member to the dashboard';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-role').value = '';
+  document.getElementById('modal-bonus').value = '10';
+  document.getElementById('modal-confirm-btn').textContent = 'Add Person';
+  document.getElementById('modal-copy-divider').style.display = '';
+  document.getElementById('modal-copy-section').style.display = '';
+  // Populate copy-from options
+  const sel = document.getElementById('modal-copy-from');
+  sel.innerHTML = '<option value="">— Start with default metrics —</option>';
+  PEOPLE.forEach(p => { const o = document.createElement('option'); o.value=p.id; o.textContent=p.name+' ('+p.role+')'; sel.appendChild(o); });
+  // Remove delete button if present
+  const existing = document.getElementById('modal-delete-btn');
+  if (existing) existing.remove();
+  document.getElementById('person-modal').classList.add('open');
+}
+
+function openEditModal(pid) {
+  const p = PEOPLE.find(x=>x.id===pid);
+  if (!p) return;
+  modalMode = 'edit';
+  modalEditPid = pid;
+  document.getElementById('modal-title').textContent = 'Edit Person';
+  document.getElementById('modal-sub').textContent = 'Update name, title or bonus target';
+  document.getElementById('modal-name').value = p.name;
+  document.getElementById('modal-role').value = p.role;
+  document.getElementById('modal-bonus').value = p.bonusPct;
+  document.getElementById('modal-confirm-btn').textContent = 'Save Changes';
+  document.getElementById('modal-copy-divider').style.display = 'none';
+  document.getElementById('modal-copy-section').style.display = 'none';
+  // Add delete button
+  const actions = document.getElementById('modal-actions');
+  let delBtn = document.getElementById('modal-delete-btn');
+  if (!delBtn) {
+    delBtn = document.createElement('button');
+    delBtn.id = 'modal-delete-btn';
+    delBtn.className = 'modal-btn modal-btn-danger';
+    delBtn.textContent = 'Delete Person';
+    delBtn.onclick = () => deletePerson(pid);
+    actions.insertBefore(delBtn, actions.firstChild);
+  }
+  delBtn.onclick = () => deletePerson(pid);
+  document.getElementById('person-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('person-modal').classList.remove('open');
+}
+
+function modalConfirm() {
+  const name  = document.getElementById('modal-name').value.trim();
+  const role  = document.getElementById('modal-role').value.trim();
+  const bonus = parseInt(document.getElementById('modal-bonus').value) || 10;
+  if (!name) { document.getElementById('modal-name').focus(); return; }
+
+  if (modalMode === 'add') {
+    const copyFrom = document.getElementById('modal-copy-from').value;
+    const srcPerson = copyFrom ? PEOPLE.find(x=>x.id===copyFrom) : null;
+    const metrics = deepCloneMetrics(srcPerson ? srcPerson.metrics : DEFAULT_METRICS);
+    const id = 'person_' + Date.now();
+    PEOPLE.push({ id, name, role: role||'Team Member', bonusPct: bonus, notes:'<strong>Cap:</strong> Bonus capped at 100% of '+bonus+'% target.', metrics });
+    initState(id, metrics.length);
+    activePid = id;
+  } else {
+    const p = PEOPLE.find(x=>x.id===modalEditPid);
+    if (p) { p.name = name; p.role = role||p.role; p.bonusPct = bonus; }
+  }
+  closeModal();
+  fullRebuild();
+}
+
+function deletePerson(pid) {
+  if (PEOPLE.length <= 1) { alert('You need at least one person on the dashboard.'); return; }
+  if (!confirm('Remove this person from the dashboard?')) return;
+  PEOPLE = PEOPLE.filter(p=>p.id!==pid);
+  delete S[pid];
+  activePid = PEOPLE[0].id;
+  closeModal();
+  fullRebuild();
+}
+
+// Close modal on overlay click
+document.getElementById('person-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── CALC ────────────────────────────────────────────────────────────────────
+function scoreToZone(score) {
+  const v = Math.min(Math.max(parseFloat(score)||0,0),100);
+  if (v < 80) return 0; if (v < 90) return 1; if (v < 100) return 2; return 3;
+}
+function calcPerson(pid) {
+  const p = PEOPLE.find(x=>x.id===pid);
+  const s = S[pid];
+  let total = 0;
+  const contribs = p.metrics.map((m,i) => {
+    const zone = scoreToZone(s.scores[i]);
+    const mult = m.brackets[zone].p / 100;
+    const c = mult * m.weight;
+    total += c;
+    return { zone, mult, c: Math.round(c) };
+  });
+  const pct = Math.min(Math.round(total), 100);
+  const salary = parseFloat(s.salary) || 0;
+  const target = salary * p.bonusPct / 100;
+  const earned = target * pct / 100;
+  return { pct, contribs, salary, target, earned };
+}
+function fmt(n) { return '£' + Math.round(n).toLocaleString('en-GB'); }
+function barGrad(pct) {
+  if (pct < 50) return 'linear-gradient(90deg,#b02020,#E83B3B)';
+  if (pct < 80) return 'linear-gradient(90deg,#c47200,#F5A623)';
+  return 'linear-gradient(90deg,#7BB223,#84BD00)';
+}
+
+// ── DISPLAY UPDATE (no re-render) ────────────────────────────────────────────
+function updateDisplay(pid) {
+  const { pct, contribs, salary, target, earned } = calcPerson(pid);
+  const p = PEOPLE.find(x=>x.id===pid);
+  const pctColor = pct<50?'var(--red)':pct<80?'var(--amber)':pct<100?'var(--midgreen)':'var(--lime)';
+  setEl(pid+'-pct-val', pct+'%', pctColor);
+  setEl(pid+'-earned-val', salary ? fmt(earned) : '—');
+  setEl(pid+'-totalcomp',  salary ? fmt(salary+earned) : '—');
+  setEl(pid+'-salary-sub', salary ? 'Bonus target: '+p.bonusPct+'% · '+fmt(target)+' at 100%' : 'Enter salary to see payout');
+  p.metrics.forEach((m,i) => {
+    const { zone, c } = contribs[i];
+    updateSliderUI(pid, i, S[pid].scores[i]);
+    const badge = document.getElementById(pid+'-badge-'+i);
+    if (badge) {
+      badge.style.background = ZONE_COLORS[zone];
+      const bpct = badge.querySelector('.pb-pct'); const bdesc = badge.querySelector('.pb-desc'); const bctb = badge.querySelector('.pb-contrib');
+      if (bpct) bpct.textContent = m.brackets[zone].p+'%';
+      if (bdesc) bdesc.textContent = m.brackets[zone].r;
+      if (bctb) bctb.textContent = c+'% contribution to total bonus';
+    }
+  });
+  const obFill = document.getElementById(pid+'-ob-fill');
+  if (obFill) { obFill.style.width = pct+'%'; obFill.style.background = barGrad(pct); }
+  setEl(pid+'-ob-pct', pct+'%', pctColor);
+  setEl(pid+'-pb-salary', salary?fmt(salary):'—');
+  setEl(pid+'-pb-target', salary?fmt(target):'—');
+  setEl(pid+'-pb-earned', salary?fmt(earned):'—');
+  setEl(pid+'-pb-total',  salary?fmt(salary+earned):'—');
+  const totalW = p.metrics.reduce((a,m)=>a+m.weight,0);
+  const warn = document.getElementById(pid+'-warn');
+  if (warn) { warn.textContent='⚠ Metric weights total '+totalW+'% — must equal 100%.'; warn.classList.toggle('show',totalW!==100); }
+}
+
+function updateSliderUI(pid, mi, score) {
+  const v = Math.min(Math.max(parseFloat(score)||0,0),100);
+  const thumbWrap = document.getElementById(pid+'-thumb-'+mi);
+  const tooltip   = document.getElementById(pid+'-tip-'+mi);
+  if (!thumbWrap) return;
+  thumbWrap.style.left = v+'%';
+  if (tooltip) tooltip.textContent = Math.round(v);
+  const zone = scoreToZone(v);
+  const thumb = thumbWrap.querySelector('.slider-thumb');
+  if (thumb) thumb.style.borderColor = ZONE_COLORS[zone];
+  const track = document.getElementById(pid+'-ztrack-'+mi);
+  if (!track) return;
+  const segs = track.querySelectorAll('.zone-seg');
+  const segDefs = [{s:0,e:80},{s:80,e:90},{s:90,e:100}];
+  segs.forEach((seg,si) => {
+    const {s:start,e:end} = segDefs[si];
+    if (v<=start) seg.style.background='rgba(0,0,0,0.08)';
+    else if (v>=end) seg.style.background=ZONE_COLORS[si];
+    else { const fp=((v-start)/(end-start))*100; seg.style.background=`linear-gradient(90deg,${ZONE_COLORS[si]} ${fp}%,rgba(0,0,0,0.08) ${fp}%)`; }
+  });
+}
+
+function setEl(id, text, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  if (color !== undefined) el.style.color = color;
+}
+
+// ── SLIDER DRAG ─────────────────────────────────────────────────────────────
+function initSlider(pid, mi) {
+  const trackEl   = document.getElementById(pid+'-ztrack-'+mi);
+  const thumbWrap = document.getElementById(pid+'-thumb-'+mi);
+  if (!trackEl || !thumbWrap) return;
+  function getVal(clientX) {
+    const rect = trackEl.getBoundingClientRect();
+    return Math.round(Math.min(Math.max((clientX-rect.left)/rect.width,0),1)*100);
+  }
+  function applyVal(val) { S[pid].scores[mi]=val; updateDisplay(pid); }
+  trackEl.addEventListener('click', e => applyVal(getVal(e.clientX)));
+  let dragging = false;
+  thumbWrap.addEventListener('mousedown',  e => { dragging=true; e.preventDefault(); });
+  thumbWrap.addEventListener('touchstart', e => { dragging=true; }, {passive:true});
+  document.addEventListener('mousemove',   e => { if(dragging) applyVal(getVal(e.clientX)); });
+  document.addEventListener('touchmove',   e => { if(dragging) applyVal(getVal(e.touches[0].clientX)); },{passive:true});
+  document.addEventListener('mouseup',  () => { dragging=false; });
+  document.addEventListener('touchend', () => { dragging=false; });
+}
+
+// ── INTERACTIONS ─────────────────────────────────────────────────────────────
+function onSalary(pid, val)        { S[pid].salary=val; updateDisplay(pid); }
+function onEditTitle(pid,mi,val)   { PEOPLE.find(x=>x.id===pid).metrics[mi].title=val; setEl(pid+'-mtitle-'+mi,val); }
+function onEditDesc(pid,mi,val)    { PEOPLE.find(x=>x.id===pid).metrics[mi].desc=val;  setEl(pid+'-mdesc-'+mi,val); }
+function onEditWeight(pid,mi,val)  { PEOPLE.find(x=>x.id===pid).metrics[mi].weight=parseInt(val)||0; setEl(pid+'-mweight-'+mi,(parseInt(val)||0)+'%'); updateDisplay(pid); }
+function onEditBracketRange(pid,mi,bi,val) { PEOPLE.find(x=>x.id===pid).metrics[mi].brackets[bi].r=val; updateDisplay(pid); }
+function onEditBracketPct(pid,mi,bi,val)   { PEOPLE.find(x=>x.id===pid).metrics[mi].brackets[bi].p=parseInt(val)||0; updateDisplay(pid); }
+
+function toggleEdit(pid) {
+  S[pid].editing = !S[pid].editing;
+  document.querySelectorAll('#panel-'+pid+' .metric-card').forEach(c=>c.classList.toggle('editing',S[pid].editing));
+  const btn = document.getElementById('editbtn-'+pid);
+  if (btn) { btn.textContent=S[pid].editing?'✓ Done editing':'✎ Edit metrics'; btn.classList.toggle('on',S[pid].editing); }
+}
+
+function showPanel(pid) {
+  activePid=pid;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+pid).classList.add('active');
+  document.getElementById('tab-'+pid).classList.add('active');
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function renderMetricCard(p, m, mi) {
+  const zoneLabels = [{pos:'0%',label:'0'},{pos:'80%',label:'80'},{pos:'90%',label:'90'},{pos:'100%',label:'100'}];
+  return `
+  <div class="metric-card" id="${p.id}-mcard-${mi}">
+    <div class="metric-header">
+      <span class="metric-title" id="${p.id}-mtitle-${mi}">${m.title}</span>
+      <span class="metric-weight-badge" id="${p.id}-mweight-${mi}">${m.weight}%</span>
+    </div>
+    <div class="metric-body view-mode">
+      <div class="desc-row"><span id="${p.id}-mdesc-${mi}">${m.desc}</span></div>
+      <div class="slider-zone">
+        <div class="zone-track" id="${p.id}-ztrack-${mi}">
+          <div class="zone-seg" style="left:0;width:80%;background:rgba(0,0,0,0.08)"></div>
+          <div class="zone-seg" style="left:80%;width:10%;background:rgba(0,0,0,0.08)"></div>
+          <div class="zone-seg" style="left:90%;width:10%;background:rgba(0,0,0,0.08)"></div>
+        </div>
+        <div class="slider-thumb-wrap" id="${p.id}-thumb-${mi}" style="left:0%">
+          <div class="slider-tooltip" id="${p.id}-tip-${mi}">0</div>
+          <div class="slider-thumb"><div class="thumb-inner"></div></div>
+        </div>
+        <div class="zone-labels">
+          ${zoneLabels.map(l=>`<span class="zone-label" style="left:${l.pos}">${l.label}</span>`).join('')}
+        </div>
+      </div>
+      <div class="payout-badge" id="${p.id}-badge-${mi}" style="background:${ZONE_COLORS[0]}">
+        <div><div class="pb-label">PAYOUT</div><div class="pb-desc">${m.brackets[0].r}</div></div>
+        <div class="pb-right"><div class="pb-pct">${m.brackets[0].p}%</div><div class="pb-contrib">0% contribution to total bonus</div></div>
+      </div>
+    </div>
+    <div class="metric-body edit-mode">
+      <div class="ef"><label>METRIC TITLE</label><input type="text" value="${m.title}" oninput="onEditTitle('${p.id}',${mi},this.value)"/></div>
+      <div class="ef"><label>DESCRIPTION</label><input type="text" value="${m.desc}" oninput="onEditDesc('${p.id}',${mi},this.value)"/></div>
+      <div class="ef"><label>WEIGHT (%)</label><input type="number" min="1" max="100" value="${m.weight}" oninput="onEditWeight('${p.id}',${mi},this.value)"/>
+        <div class="weight-hint">All 3 weights must sum to 100%</div></div>
+      <div class="ef"><label>BRACKETS — description &amp; payout %</label>
+        ${m.brackets.map((b,bi)=>`
+        <div style="margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="width:9px;height:9px;border-radius:50%;background:${ZONE_COLORS[bi]};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:10px;color:var(--muted)">${bi===0?'< 80':bi===1?'80–89':bi===2?'90–99':'100'}</span>
+          </div>
+          <div class="bkt-edit-row">
+            <input type="text" value="${b.r}" oninput="onEditBracketRange('${p.id}',${mi},${bi},this.value)"/>
+            <input type="number" min="0" max="100" value="${b.p}" oninput="onEditBracketPct('${p.id}',${mi},${bi},this.value)"/>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTabs() {
+  document.getElementById('tabs').innerHTML =
+    PEOPLE.map(p=>`
+      <button class="tab${p.id===activePid?' active':''}" id="tab-${p.id}" onclick="showPanel('${p.id}')">
+        ${p.name}
+        <span class="tab-role">${p.role}</span>
+        <span class="tab-edit-btn" onclick="event.stopPropagation();openEditModal('${p.id}')" title="Edit name/title">✎</span>
+      </button>`).join('')
+    + `<button class="tab-add-btn" onclick="openAddModal()">+ Add person</button>`;
+}
+
+function renderPanels() {
+  document.getElementById('panels').innerHTML = PEOPLE.map(p=>`
+  <div id="panel-${p.id}" class="panel${p.id===activePid?' active':''}">
+    <div class="top-row">
+      <div class="dark-card">
+        <div class="card-label">ANNUAL BASE SALARY</div>
+        <div class="salary-wrap"><span>£</span><input type="number" min="0" placeholder="e.g. 65000" oninput="onSalary('${p.id}',this.value)" value="${S[p.id]?S[p.id].salary:''}"/></div>
+        <div class="card-sub" id="${p.id}-salary-sub">Enter salary to see payout</div>
+      </div>
+      <div class="dark-card">
+        <div class="card-label">BONUS % ACHIEVED</div>
+        <div class="card-value" id="${p.id}-pct-val" style="color:var(--red)">0%</div>
+        <div class="card-sub">weighted across ${p.metrics.length} metrics</div>
+      </div>
+      <div class="dark-card accent">
+        <div class="card-label">BONUS EARNED (£)</div>
+        <div class="card-value pink" id="${p.id}-earned-val">—</div>
+        <div class="card-sub">of target at current scores</div>
+      </div>
+      <div class="dark-card">
+        <div class="card-label">TOTAL COMP (£)</div>
+        <div class="card-value" id="${p.id}-totalcomp">—</div>
+        <div class="card-sub">base salary + bonus earned</div>
+      </div>
+    </div>
+    <div class="warn" id="${p.id}-warn"></div>
+    <div class="section-row">
+      <div class="section-label">PERFORMANCE METRICS — drag slider to set score</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="edit-btn" style="background:rgba(28,46,35,.07);border-color:var(--border);color:var(--dark)" onclick="openEditModal('${p.id}')">✎ Edit name / title</button>
+        <button class="edit-btn" id="editbtn-${p.id}" onclick="toggleEdit('${p.id}')">✎ Edit metrics</button>
+      </div>
+    </div>
+    <div class="metrics-grid">${p.metrics.map((m,mi)=>renderMetricCard(p,m,mi)).join('')}</div>
+    <div class="overall-box">
+      <div class="ob-info"><div class="ob-meta">PERFORMANCE SUMMARY</div><div class="ob-name">${p.name}</div><div class="ob-role">${p.role}</div></div>
+      <div class="ob-bar-wrap">
+        <div class="ob-bar-labels"><span>0%</span><span>Bonus achievement</span><span>100%</span></div>
+        <div class="ob-track"><div class="ob-fill" id="${p.id}-ob-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ob-right"><div class="ob-pct-label">BONUS EARNED</div><div class="ob-pct-val" id="${p.id}-ob-pct" style="color:var(--red)">0%</div><div class="ob-pct-sub">of ${p.bonusPct}% target</div></div>
+    </div>
+    <div class="payout-panel">
+      <div class="payout-title">SALARY &amp; PAYOUT BREAKDOWN</div>
+      <div class="payout-grid">
+        <div class="payout-item"><div class="pi-label">BASE SALARY</div><div class="pi-val" id="${p.id}-pb-salary">—</div><div class="pi-sub">annual</div></div>
+        <div class="payout-item"><div class="pi-label">BONUS TARGET (${p.bonusPct}%)</div><div class="pi-val" id="${p.id}-pb-target">—</div><div class="pi-sub">at 100% achievement</div></div>
+        <div class="payout-item"><div class="pi-label">BONUS EARNED</div><div class="pi-val g" id="${p.id}-pb-earned">—</div><div class="pi-sub">at current scores</div></div>
+        <div class="payout-item"><div class="pi-label">TOTAL COMP</div><div class="pi-val pk" id="${p.id}-pb-total">—</div><div class="pi-sub">base + bonus</div></div>
+      </div>
+    </div>
+    <div class="notes-box">${p.notes}</div>
+  </div>`).join('');
+  PEOPLE.forEach(p => p.metrics.forEach((_,mi) => initSlider(p.id, mi)));
+}
+
+function fullRebuild() {
+  renderTabs();
+  renderPanels();
+}
+
+fullRebuild();
+</script>
+</body>
+</html>
