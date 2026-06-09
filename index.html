@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>J&J — 2026 Leadership Bonus Dashboard</title>
+<title>J&J — 2026 Team Leads Bonus Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -193,14 +193,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--offwhite);color:var(--tex
 <div class="header">
   <div>
     <div class="pill">J&J GLOBAL FULFILMENT</div>
-    <h1>Leadership Team Bonus Dashboard</h1>
+    <h1>Team Leads Bonus Dashboard</h1>
     <div class="header-sub">ANNUAL PERFORMANCE · 10% SALARY BONUS · 2026</div>
   </div>
   <div class="year-badge">FY 2026</div>
 </div>
 <div class="app">
   <div class="sidebar">
-    <div class="sb-section">Leadership Team</div>
+    <div class="sb-section">Team Leads</div>
     <div class="sb-people" id="sb-people"></div>
     <button class="sb-add-btn" onclick="openAddModal()">+ Add person</button>
   </div>
@@ -332,7 +332,7 @@ function modalConfirm(){
     const src=cf?PEOPLE.find(x=>x.id===cf):null;
     const id='lead_'+Date.now();
     const metrics=src?dc(src.metrics).map(m=>({...m,target:'',actual:''})):defaultMetrics();
-    PEOPLE.push({id,name,role:role||'Leadership',bonusPct:bonus,notes:'<strong>Cap:</strong> Bonus capped at 100% of '+bonus+'% target.',metrics});
+    PEOPLE.push({id,name,role:role||'Team Lead',bonusPct:bonus,notes:'<strong>Cap:</strong> Bonus capped at 100% of '+bonus+'% target.',metrics});
     initS(id);activePid=id;
   } else {
     const p=PEOPLE.find(x=>x.id===modalEditPid);
